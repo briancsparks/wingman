@@ -23,6 +23,20 @@ Test what yer working on.`,
 }
 
 func DoTtt() {
+  wingman.ThreeTwoOneGo()
+  _ = wingman.MoveActiveWindowDir(wingman.ScreenLeft, 20)
+}
+
+func DoTtt3() {
+  rect := win.RECT{Left: 288, Top: 132, Right: 1828, Bottom: 1019} // Main
+  //rect := win.RECT{Left: 28, Top: 147, Right: 1156, Bottom: 1050} // Left
+  //hwnd, _ := wingman.FindWindowByClassName("Notepad")
+
+  wingman.ThreeTwoOneGo()
+  _ = wingman.MoveActiveWindowTo(rect)
+}
+
+func DoTtt2() {
   rect := win.RECT{Left: 288, Top: 132, Right: 1828, Bottom: 1019} // Main
   //rect := win.RECT{Left: 28, Top: 147, Right: 1156, Bottom: 1050} // Left
   //hwnd, _ := wingman.FindWindowByClassName("Notepad")
