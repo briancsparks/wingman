@@ -1,7 +1,9 @@
 package wingman
 
 import (
+  _ "embed"
   "fmt"
+  "github.com/getlantern/systray"
   "github.com/hajimehoshi/ebiten/v2"
   "github.com/moutend/go-hook/pkg/keyboard"
   "github.com/moutend/go-hook/pkg/types"
@@ -14,6 +16,24 @@ import (
 )
 
 /* Copyright © 2022 Brian C Sparks <briancsparks@gmail.com> -- MIT (see LICENSE file) */
+
+//go:embed assets/kb-arrows-white2.ico
+var whiteArrows []byte
+
+//go:embed assets/kb-arrows-black.ico
+var blackArrows []byte
+
+//go:embed assets/kb-arrows-teal.ico
+var tealArrows []byte
+
+//go:embed assets/kb-arrows-red.ico
+var redArrows []byte
+
+//go:embed assets/kb-arrows-blue1.ico
+var blue1Arrows []byte
+
+//go:embed assets/kb-arrows-blue2.ico
+var blue2Arrows []byte
 
 type kbmode int
 
@@ -43,28 +63,33 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 // --------------------------------------------------------------------------------------------------------------------
 
 func RunKbMove() error {
-  // Buffer size is depends on your need. The 100 is placeholder value.
+  // Setup keyboard hook
   keyboardChan := make(chan types.KeyboardEvent, 100)
-
   if err := keyboard.Install(handler, keyboardChan); err != nil {
     return err
   }
-
   defer keyboard.Uninstall()
 
+  // Setup system tray
+  systray.Register(onReady, onExit)
+
+  // Handle Ctrl+C
   signalChan := make(chan os.Signal, 1)
   signal.Notify(signalChan, os.Interrupt)
 
-  fmt.Println("start capturing keyboard input")
+  //fmt.Println("start capturing keyboard input")
 
+  // Main loop
   for {
     select {
     case <-time.After(1 * time.Minute):
       fmt.Println("Timeout")
+      systray.Quit()
       return nil
 
     case <-signalChan:
       fmt.Println("Shutdown")
+      systray.Quit()
       return nil
 
       //case k := <-keyboardChan:
@@ -74,6 +99,40 @@ func RunKbMove() error {
 
     }
   }
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+func onReady() {
+  systray.SetIcon(tealArrows)
+  fmt.Printf("icon\n")
+  quit := systray.AddMenuItem("Quit", "Quit Wingman")
+
+  go func() {
+    for {
+      select {
+      case <-quit.ClickedCh:
+        systray.Quit()
+        // TODO: kill the KB hook
+        return
+      }
+    }
+  }()
+
+  //go func() {
+  //  for {
+  //    systray.SetTooltip("Ok - No Proxy")
+  //    systray.SetIcon(blackArrows)
+  //    systray.SetTooltip("Engaged")
+  //
+  //    time.Sleep(2 * time.Second)
+  //  }
+  //}()
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+func onExit() {
 
 }
 
@@ -84,12 +143,18 @@ func handler(c chan<- types.KeyboardEvent) types.HOOKPROC {
   trigger1 := false
   trigger2 := false
   mode := normal
+  ctrlDown := false
+  shiftDown := false
+  winkeyDown := false
+  altDown := false
+  menuKeyDown := false
 
   return func(code int32, wParam, lParam uintptr) uintptr {
     var vkcode types.VKCode
     var scancode uint32
     var message types.Message
     callNext := true
+    debugMsg := ""
 
     if lParam == 0 {
       goto NEXT
@@ -109,15 +174,18 @@ func handler(c chan<- types.KeyboardEvent) types.HOOKPROC {
       if !trigger1 {
         if vkcode == types.VK_RCONTROL && isDown(message) {
           trigger1 = true
+          systray.SetIcon(blue1Arrows)
         }
       }
 
       if trigger1 {
         if vkcode == types.VK_RCONTROL && isUp(message) {
           trigger1 = false /* cancel */
+          systray.SetIcon(redArrows)
         } else {
           if vkcode == types.VK_LCONTROL && isUp(message) {
             trigger2 = true
+            systray.SetIcon(blue2Arrows)
           }
         }
       }
@@ -127,6 +195,8 @@ func handler(c chan<- types.KeyboardEvent) types.HOOKPROC {
           mode = engaged
           trigger1 = false
           trigger2 = false
+          systray.SetIcon(whiteArrows)
+
           callNext = true
           goto NEXT
         }
@@ -136,6 +206,7 @@ func handler(c chan<- types.KeyboardEvent) types.HOOKPROC {
     } else if mode == engaged {
       if vkcode == types.VK_ESCAPE && isUp(message) {
         mode = normal
+        systray.SetIcon(tealArrows)
       }
     }
 
@@ -149,18 +220,60 @@ func handler(c chan<- types.KeyboardEvent) types.HOOKPROC {
       } else {
         // Use an immediately-called function to avoid the 'goto NEXT' jumping over declarations
         func() {
-          //ctrl := isCtrlDown(vkcode, message)
-          _ = isCtrlDown(vkcode, message)
-          _ = isShiftDown(vkcode, message)
-          _ = isWinKeyDown(vkcode, message)
-          _ = isAltDown(vkcode, message)
-          _ = isMenuKeyDown(vkcode, message)
+          ctrlDown = isCtrlDown(vkcode, message, ctrlDown)
+          shiftDown = isShiftDown(vkcode, message, shiftDown)
+          winkeyDown = isWinKeyDown(vkcode, message, winkeyDown)
+          altDown = isAltDown(vkcode, message, altDown)
+          menuKeyDown = isMenuKeyDown(vkcode, message, menuKeyDown)
+
+          if ctrlDown {
+            debugMsg += "^"
+          }
+
+          if shiftDown {
+            debugMsg += "$"
+          }
+
+          if winkeyDown {
+            debugMsg += "#"
+          }
+
+          if altDown {
+            debugMsg += "@"
+          }
+
+          if menuKeyDown {
+            debugMsg += "="
+          }
+          debugMsg += " "
+
+          if vkcode == types.VK_LEFT && ctrlDown {
+            _ = MoveActiveWindowDir(ScreenLeft, 20)
+          } else if vkcode == types.VK_LEFT {
+            _ = MoveActiveWindowDir(ScreenLeft, 1)
+
+          } else if vkcode == types.VK_UP && ctrlDown {
+            _ = MoveActiveWindowDir(ScreenTop, 20)
+          } else if vkcode == types.VK_UP {
+            _ = MoveActiveWindowDir(ScreenTop, 1)
+
+          } else if vkcode == types.VK_RIGHT && ctrlDown {
+            _ = MoveActiveWindowDir(ScreenRight, 20)
+          } else if vkcode == types.VK_RIGHT {
+            _ = MoveActiveWindowDir(ScreenRight, 1)
+
+          } else if vkcode == types.VK_DOWN && ctrlDown {
+            _ = MoveActiveWindowDir(ScreenBottom, 20)
+          } else if vkcode == types.VK_DOWN {
+            _ = MoveActiveWindowDir(ScreenBottom, 1)
+          }
+
         }()
       }
     }
 
   NEXT:
-    fmt.Printf("%-13v %-13v (%v); wproc: %v, w: %v, t1: %v, t1: %v, m: %v\n", message, vkcode, scancode, code, wParam, trigger1, trigger2, mode)
+    fmt.Printf("%-13v %-13v (%v); wproc: %v, w: %v, t1: %v, t1: %v, m: %v -- %v\n", message, vkcode, scancode, code, wParam, trigger1, trigger2, mode, debugMsg)
 
     // Do not call this, if you want to eat the key, otherwise the active window will get it.
     if callNext {
@@ -180,24 +293,39 @@ func isUp(m types.Message) bool {
   return m == types.WM_KEYUP || m == types.WM_SYSKEYUP
 }
 
-func isCtrlDown(k types.VKCode, m types.Message) bool {
-  return isCtrl(k) && isDown(m)
+func isCtrlDown(k types.VKCode, m types.Message, current bool) bool {
+  if isCtrl(k) {
+    return isDown(m)
+  }
+  return current
 }
 
-func isShiftDown(k types.VKCode, m types.Message) bool {
-  return isShift(k) && isDown(m)
+func isShiftDown(k types.VKCode, m types.Message, current bool) bool {
+  if isShift(k) {
+    return isDown(m)
+  }
+  return current
 }
 
-func isWinKeyDown(k types.VKCode, m types.Message) bool {
-  return isWinKey(k) && isDown(m)
+func isWinKeyDown(k types.VKCode, m types.Message, current bool) bool {
+  if isWinKey(k) {
+    return isDown(m)
+  }
+  return current
 }
 
-func isAltDown(k types.VKCode, m types.Message) bool {
-  return isAlt(k) && isDown(m)
+func isAltDown(k types.VKCode, m types.Message, current bool) bool {
+  if isAlt(k) {
+    return isDown(m)
+  }
+  return current
 }
 
-func isMenuKeyDown(k types.VKCode, m types.Message) bool {
-  return isMenuKey(k) && isDown(m)
+func isMenuKeyDown(k types.VKCode, m types.Message, current bool) bool {
+  if isMenuKey(k) {
+    return isDown(m)
+  }
+  return current
 }
 
 func isCtrl(k types.VKCode) bool {
