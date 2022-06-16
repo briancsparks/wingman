@@ -21,7 +21,7 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
   Run: func(cmd *cobra.Command, args []string) {
     fmt.Println("mvw called")
-    wingman.RunKbMove()
+    wingman.RunKbMove0()
     //fmt.Printf("Run done\n")
   },
 }

@@ -23,6 +23,12 @@ Test what yer working on.`,
 }
 
 func DoTtt() {
+  fmt.Println("mvw called")
+  wingman.RunKbMove0()
+  fmt.Printf("Run done\n")
+}
+
+func DoTtt4() {
   wingman.ThreeTwoOneGo()
   _ = wingman.MoveActiveWindowDir(wingman.ScreenLeft, 20)
 }

@@ -65,7 +65,13 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 var finish chan struct{}
 var finishedIt func()
 
-func RunKbMove() error {
+func RunKbMove0() error {
+  // Setup system tray
+  systray.Run(RunKbMove, onExit)
+  return nil
+}
+
+func RunKbMove() {
   // Finish signal
   finish := make(chan struct{}, 1)
   finished := false
@@ -75,24 +81,28 @@ func RunKbMove() error {
       close(finish)
       fmt.Printf("finishedIt - close\n")
     }
+    fmt.Printf("finishedIt\n")
   }
   defer finishedIt()
 
   // Setup keyboard hook
   keyboardChan := make(chan types.KeyboardEvent, 100)
   if err := keyboard.Install(handler, keyboardChan); err != nil {
-    return err
+    fmt.Printf("kb.install\n")
+    //return err
+    return
   }
   defer keyboard.Uninstall()
-
-  // Setup system tray
-  systray.Register(onReady, onExit)
 
   // Handle Ctrl+C
   signalChan := make(chan os.Signal, 1)
   signal.Notify(signalChan, os.Interrupt)
 
   //fmt.Println("start capturing keyboard input")
+
+  systray.SetIcon(tealArrows)
+  fmt.Printf("icon\n")
+  quit := systray.AddMenuItem("Quit", "Quit Wingman")
 
   //// Main loop
   //wg := sync.WaitGroup{}
@@ -107,19 +117,32 @@ func RunKbMove() error {
       fmt.Println("Timeout")
       systray.Quit()
       finishedIt()
-      return nil
+      return
+      //return nil
 
     case <-signalChan:
       fmt.Println("Shutdown")
       systray.Quit()
       finishedIt()
-      time.Sleep(5 * time.Second)
-      return nil
+      //time.Sleep(5 * time.Second)
+      return
+      //return nil
 
       //case k := <-keyboardChan:
       //  //fmt.Printf("Keyb: %-12v vkcode: %-12v sccode: %4v t: %10v\n", k.Message, k.VKCode, k.ScanCode, k.Time)
       //  fmt.Printf("%-12v %-12v (%v)\n", k.Message, k.VKCode, k.ScanCode)
       //  continue
+
+    case <-finish:
+      fmt.Printf("finish in onReady\n")
+      systray.Quit()
+      finishedIt()
+      return
+
+    case <-quit.ClickedCh:
+      fmt.Printf("quit menu clicked\n")
+      finishedIt()
+      return
 
     }
   }
