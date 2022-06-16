@@ -65,144 +65,82 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 var finish chan struct{}
 var finishedIt func()
 
+// --------------------------------------------------------------------------------------------------------------------
+
 func RunKbMove0() error {
   // Setup system tray
-  systray.Run(RunKbMove, onExit)
+  systray.Run(onReady, onExit)
   return nil
-}
-
-func RunKbMove() {
-  // Finish signal
-  finish := make(chan struct{}, 1)
-  finished := false
-  finishedIt = func() {
-    if !finished {
-      finished = true
-      close(finish)
-      fmt.Printf("finishedIt - close\n")
-    }
-    fmt.Printf("finishedIt\n")
-  }
-  defer finishedIt()
-
-  // Setup keyboard hook
-  keyboardChan := make(chan types.KeyboardEvent, 100)
-  if err := keyboard.Install(handler, keyboardChan); err != nil {
-    fmt.Printf("kb.install\n")
-    //return err
-    return
-  }
-  defer keyboard.Uninstall()
-
-  // Handle Ctrl+C
-  signalChan := make(chan os.Signal, 1)
-  signal.Notify(signalChan, os.Interrupt)
-
-  //fmt.Println("start capturing keyboard input")
-
-  systray.SetIcon(tealArrows)
-  fmt.Printf("icon\n")
-  quit := systray.AddMenuItem("Quit", "Quit Wingman")
-
-  //// Main loop
-  //wg := sync.WaitGroup{}
-  //wg.Add(1)
-
-  //go func() {
-  //  defer wg.Done()
-
-  for {
-    select {
-    case <-time.After(1 * time.Minute):
-      fmt.Println("Timeout")
-      systray.Quit()
-      finishedIt()
-      return
-      //return nil
-
-    case <-signalChan:
-      fmt.Println("Shutdown")
-      systray.Quit()
-      finishedIt()
-      //time.Sleep(5 * time.Second)
-      return
-      //return nil
-
-      //case k := <-keyboardChan:
-      //  //fmt.Printf("Keyb: %-12v vkcode: %-12v sccode: %4v t: %10v\n", k.Message, k.VKCode, k.ScanCode, k.Time)
-      //  fmt.Printf("%-12v %-12v (%v)\n", k.Message, k.VKCode, k.ScanCode)
-      //  continue
-
-    case <-finish:
-      fmt.Printf("finish in onReady\n")
-      systray.Quit()
-      finishedIt()
-      return
-
-    case <-quit.ClickedCh:
-      fmt.Printf("quit menu clicked\n")
-      finishedIt()
-      return
-
-    }
-  }
-  //}()
-
-  //wg.Wait()
 }
 
 // --------------------------------------------------------------------------------------------------------------------
 
 func onReady() {
-  systray.SetIcon(tealArrows)
-  fmt.Printf("icon\n")
-  //quit := systray.AddMenuItem("Quit", "Quit Wingman")
-  _ = systray.AddMenuItem("Quit", "Quit Wingman")
 
-  //go func() {
-  //  fmt.Printf("one\n")
-  //  <-finish
-  //  fmt.Printf("two\n")
-  //}()
-
-  go func() {
-    for {
-      fmt.Printf("onReady for\n")
-      select {
-      //case <-quit.ClickedCh:
-      //  fmt.Printf("quit menu clicked\n")
-      //  finishedIt()
-      //  goto ALLALLA
-      //  //break
-      //  //return
-
-      case <-finish:
-        fmt.Printf("finish in onReady\n")
-        systray.Quit()
-        goto ALLALLA
-        //break
-        //return
-      }
+  // ----- Finish signal -----
+  finish := make(chan struct{}, 1)
+  finished := false
+  finishedIt = func() {
+    if !finished {
+      finished = true
+      systray.Quit()
+      close(finish)
     }
-  ALLALLA:
-    fmt.Printf("onReady for func done\n")
-  }()
+  }
+  defer finishedIt()
 
-  //go func() {
-  //  for {
-  //    systray.SetTooltip("Ok - No Proxy")
-  //    systray.SetIcon(blackArrows)
-  //    systray.SetTooltip("Engaged")
-  //
-  //    time.Sleep(2 * time.Second)
-  //  }
-  //}()
+  // ----- Setup keyboard hook -----
+  keyboardChan := make(chan types.KeyboardEvent, 100)
+  if err := keyboard.Install(handler, keyboardChan); err != nil {
+    fmt.Printf("kb.install\n")
+    return
+  }
+  defer keyboard.Uninstall()
+
+  // ----- Handle Ctrl+C -----
+  signalChan := make(chan os.Signal, 1)
+  signal.Notify(signalChan, os.Interrupt)
+
+  // =========================================
+
+  // Start with a teal icon
+  systray.SetIcon(tealArrows)
+  quit := systray.AddMenuItem("Quit", "Quit Wingman")
+
+  for {
+    select {
+    case <-time.After(1 * time.Minute):
+      //systray.Quit()
+      finishedIt()
+      return
+
+    case <-signalChan:
+      //systray.Quit()
+      finishedIt()
+      return
+
+    //case k := <-keyboardChan:
+    //  //fmt.Printf("Keyb: %-12v vkcode: %-12v sccode: %4v t: %10v\n", k.Message, k.VKCode, k.ScanCode, k.Time)
+    //  fmt.Printf("%-12v %-12v (%v)\n", k.Message, k.VKCode, k.ScanCode)
+    //  continue
+
+    //case <-finish:
+    //  //systray.Quit()
+    //  finishedIt()
+    //  return
+
+    case <-quit.ClickedCh:
+      //systray.Quit()
+      finishedIt()
+      return
+
+    }
+  }
 }
 
 // --------------------------------------------------------------------------------------------------------------------
 
 func onExit() {
-  fmt.Printf("onExit\n")
 }
 
 // --------------------------------------------------------------------------------------------------------------------
