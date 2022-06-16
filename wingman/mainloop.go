@@ -62,7 +62,22 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 
 // --------------------------------------------------------------------------------------------------------------------
 
+var finish chan struct{}
+var finishedIt func()
+
 func RunKbMove() error {
+  // Finish signal
+  finish := make(chan struct{}, 1)
+  finished := false
+  finishedIt = func() {
+    if !finished {
+      finished = true
+      close(finish)
+      fmt.Printf("finishedIt - close\n")
+    }
+  }
+  defer finishedIt()
+
   // Setup keyboard hook
   keyboardChan := make(chan types.KeyboardEvent, 100)
   if err := keyboard.Install(handler, keyboardChan); err != nil {
@@ -79,17 +94,26 @@ func RunKbMove() error {
 
   //fmt.Println("start capturing keyboard input")
 
-  // Main loop
+  //// Main loop
+  //wg := sync.WaitGroup{}
+  //wg.Add(1)
+
+  //go func() {
+  //  defer wg.Done()
+
   for {
     select {
     case <-time.After(1 * time.Minute):
       fmt.Println("Timeout")
       systray.Quit()
+      finishedIt()
       return nil
 
     case <-signalChan:
       fmt.Println("Shutdown")
       systray.Quit()
+      finishedIt()
+      time.Sleep(5 * time.Second)
       return nil
 
       //case k := <-keyboardChan:
@@ -99,6 +123,9 @@ func RunKbMove() error {
 
     }
   }
+  //}()
+
+  //wg.Wait()
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -106,17 +133,36 @@ func RunKbMove() error {
 func onReady() {
   systray.SetIcon(tealArrows)
   fmt.Printf("icon\n")
-  quit := systray.AddMenuItem("Quit", "Quit Wingman")
+  //quit := systray.AddMenuItem("Quit", "Quit Wingman")
+  _ = systray.AddMenuItem("Quit", "Quit Wingman")
+
+  //go func() {
+  //  fmt.Printf("one\n")
+  //  <-finish
+  //  fmt.Printf("two\n")
+  //}()
 
   go func() {
     for {
+      fmt.Printf("onReady for\n")
       select {
-      case <-quit.ClickedCh:
+      //case <-quit.ClickedCh:
+      //  fmt.Printf("quit menu clicked\n")
+      //  finishedIt()
+      //  goto ALLALLA
+      //  //break
+      //  //return
+
+      case <-finish:
+        fmt.Printf("finish in onReady\n")
         systray.Quit()
-        // TODO: kill the KB hook
-        return
+        goto ALLALLA
+        //break
+        //return
       }
     }
+  ALLALLA:
+    fmt.Printf("onReady for func done\n")
   }()
 
   //go func() {
@@ -133,7 +179,7 @@ func onReady() {
 // --------------------------------------------------------------------------------------------------------------------
 
 func onExit() {
-
+  fmt.Printf("onExit\n")
 }
 
 // --------------------------------------------------------------------------------------------------------------------
