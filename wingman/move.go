@@ -52,6 +52,7 @@ func MoveWindowDir(hwnd win.HWND, dir ScreenDir, count int32) error {
   return MoveWindowTo(hwnd, rect)
 }
 
+// MoveActiveWindowDir moves the active window in a certain direction, the given count.
 func MoveActiveWindowDir(dir ScreenDir, count int32) error {
   hwnd := win.GetForegroundWindow()
   return MoveWindowDir(hwnd, dir, count)
@@ -81,6 +82,32 @@ func ExpandWindowDir(hwnd win.HWND, dir ScreenDir, count int32) error {
 func ExpandActiveWindowDir(dir ScreenDir, count int32) error {
   hwnd := win.GetForegroundWindow()
   return ExpandWindowDir(hwnd, dir, count)
+}
+
+func ShrinkWindowDir(hwnd win.HWND, dir ScreenDir, count int32) error {
+  var rect win.RECT
+  success := win.GetWindowRect(hwnd, &rect)
+  if !success {
+    return fmt.Errorf("could not move window to %v", rect)
+  }
+
+  switch dir {
+  case ScreenLeft:
+    rect.Left -= count
+  case ScreenTop:
+    rect.Top -= count
+  case ScreenRight:
+    rect.Right += count
+  case ScreenBottom:
+    rect.Bottom += count
+  }
+
+  return MoveWindowTo(hwnd, rect)
+}
+
+func ShrinkActiveWindowDir(dir ScreenDir, count int32) error {
+  hwnd := win.GetForegroundWindow()
+  return ShrinkWindowDir(hwnd, dir, count)
 }
 
 func MoveWindowTo(hwnd win.HWND, rect win.RECT) error {

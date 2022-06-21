@@ -176,7 +176,7 @@ func handler(c chan<- types.KeyboardEvent) types.HOOKPROC {
       KBDLLHOOKSTRUCT: *(*types.KBDLLHOOKSTRUCT)(unsafe.Pointer(lParam)),
     }
 
-    // ----- Engeging code
+    // ----- Engeging code --------------------
     if mode == normal {
       if !trigger1 {
         if vkcode == types.VK_RCONTROL && isDown(message) {
@@ -216,11 +216,13 @@ func handler(c chan<- types.KeyboardEvent) types.HOOKPROC {
         systray.SetIcon(tealArrows)
       }
     }
+    // ----- Engaged ----------------------------------------
 
-    // ----- Engaged
+    // ----- Translate keys into actions --------------------
     if mode == engaged {
       callNext = false
 
+      // Dont steal Alt-Tab ever
       if vkcode == types.VK_LMENU || vkcode == types.VK_TAB {
         callNext = true
 
@@ -254,21 +256,63 @@ func handler(c chan<- types.KeyboardEvent) types.HOOKPROC {
           }
           debugMsg += " "
 
-          if vkcode == types.VK_LEFT && ctrlDown {
+          // Arrow keys
+          // The key alone  - move by one
+          // Shift+Key      - Extend
+          // Alt+Key        - Shrink
+          // Ctrl+          - Move/Resize by larger amount
+
+          // <- Left arrow
+          if vkcode == types.VK_LEFT && ctrlDown && shiftDown {
+            _ = ExpandActiveWindowDir(ScreenLeft, 20)
+          } else if vkcode == types.VK_LEFT && shiftDown {
+            _ = ExpandActiveWindowDir(ScreenLeft, 1)
+          } else if vkcode == types.VK_LEFT && ctrlDown && altDown {
+            _ = ShrinkActiveWindowDir(ScreenLeft, 20)
+          } else if vkcode == types.VK_LEFT && altDown {
+            _ = ShrinkActiveWindowDir(ScreenLeft, 1)
+          } else if vkcode == types.VK_LEFT && ctrlDown {
             _ = MoveActiveWindowDir(ScreenLeft, 20)
           } else if vkcode == types.VK_LEFT {
             _ = MoveActiveWindowDir(ScreenLeft, 1)
 
+          // ^ Up arrow
+          } else if vkcode == types.VK_UP && ctrlDown && shiftDown {
+            _ = ExpandActiveWindowDir(ScreenTop, 20)
+          } else if vkcode == types.VK_UP && shiftDown {
+            _ = ExpandActiveWindowDir(ScreenTop, 1)
+          } else if vkcode == types.VK_UP && ctrlDown && altDown {
+            _ = ShrinkActiveWindowDir(ScreenTop, 20)
+          } else if vkcode == types.VK_UP && altDown {
+            _ = ShrinkActiveWindowDir(ScreenTop, 1)
           } else if vkcode == types.VK_UP && ctrlDown {
             _ = MoveActiveWindowDir(ScreenTop, 20)
           } else if vkcode == types.VK_UP {
             _ = MoveActiveWindowDir(ScreenTop, 1)
 
+          // -> Right arrow
+          } else if vkcode == types.VK_RIGHT && ctrlDown && shiftDown {
+            _ = ExpandActiveWindowDir(ScreenRight, 20)
+          } else if vkcode == types.VK_RIGHT && shiftDown {
+            _ = ExpandActiveWindowDir(ScreenRight, 1)
+          } else if vkcode == types.VK_RIGHT && ctrlDown && altDown {
+            _ = ShrinkActiveWindowDir(ScreenRight, 20)
+          } else if vkcode == types.VK_RIGHT && altDown {
+            _ = ShrinkActiveWindowDir(ScreenRight, 1)
           } else if vkcode == types.VK_RIGHT && ctrlDown {
             _ = MoveActiveWindowDir(ScreenRight, 20)
           } else if vkcode == types.VK_RIGHT {
             _ = MoveActiveWindowDir(ScreenRight, 1)
 
+          // v Down arrow
+          } else if vkcode == types.VK_DOWN && ctrlDown && shiftDown {
+            _ = ExpandActiveWindowDir(ScreenBottom, 20)
+          } else if vkcode == types.VK_DOWN && shiftDown {
+            _ = ExpandActiveWindowDir(ScreenBottom, 1)
+          } else if vkcode == types.VK_DOWN && ctrlDown && altDown {
+            _ = ShrinkActiveWindowDir(ScreenBottom, 20)
+          } else if vkcode == types.VK_DOWN && altDown {
+            _ = ShrinkActiveWindowDir(ScreenBottom, 1)
           } else if vkcode == types.VK_DOWN && ctrlDown {
             _ = MoveActiveWindowDir(ScreenBottom, 20)
           } else if vkcode == types.VK_DOWN {
