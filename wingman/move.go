@@ -27,6 +27,8 @@ const (
 // ====================================================================================================================
 // Main External interface
 
+// --------------------------------------------------------------------------------------------------------------------
+
 func MoveWindowDir(hwnd win.HWND, dir ScreenDir, count int32) error {
   var rect win.RECT
   success := win.GetWindowRect(hwnd, &rect)
@@ -52,11 +54,15 @@ func MoveWindowDir(hwnd win.HWND, dir ScreenDir, count int32) error {
   return MoveWindowTo(hwnd, rect)
 }
 
+// -----------------------------------------------------------------------------------------
+
 // MoveActiveWindowDir moves the active window in a certain direction, the given count.
 func MoveActiveWindowDir(dir ScreenDir, count int32) error {
   hwnd := win.GetForegroundWindow()
   return MoveWindowDir(hwnd, dir, count)
 }
+
+// --------------------------------------------------------------------------------------------------------------------
 
 func ExpandWindowDir(hwnd win.HWND, dir ScreenDir, count int32) error {
   var rect win.RECT
@@ -79,10 +85,14 @@ func ExpandWindowDir(hwnd win.HWND, dir ScreenDir, count int32) error {
   return MoveWindowTo(hwnd, rect)
 }
 
+// -----------------------------------------------------------------------------------------
+
 func ExpandActiveWindowDir(dir ScreenDir, count int32) error {
   hwnd := win.GetForegroundWindow()
   return ExpandWindowDir(hwnd, dir, count)
 }
+
+// --------------------------------------------------------------------------------------------------------------------
 
 func ShrinkWindowDir(hwnd win.HWND, dir ScreenDir, count int32) error {
   var rect win.RECT
@@ -105,10 +115,14 @@ func ShrinkWindowDir(hwnd win.HWND, dir ScreenDir, count int32) error {
   return MoveWindowTo(hwnd, rect)
 }
 
+// -----------------------------------------------------------------------------------------
+
 func ShrinkActiveWindowDir(dir ScreenDir, count int32) error {
   hwnd := win.GetForegroundWindow()
   return ShrinkWindowDir(hwnd, dir, count)
 }
+
+// --------------------------------------------------------------------------------------------------------------------
 
 func MoveWindowTo(hwnd win.HWND, rect win.RECT) error {
   success := SetWindowRect(hwnd, rect)
@@ -118,6 +132,8 @@ func MoveWindowTo(hwnd win.HWND, rect win.RECT) error {
   return nil
 }
 
+// -----------------------------------------------------------------------------------------
+
 func MoveActiveWindowTo(rect win.RECT) error {
   hwnd := win.GetForegroundWindow()
   return MoveWindowTo(hwnd, rect)
@@ -125,9 +141,19 @@ func MoveActiveWindowTo(rect win.RECT) error {
 
 // --------------------------------------------------------------------------------------------------------------------
 
-func MoveWindowClassTo(nameToFind, loc string) {
-  fmt.Printf("MWCT %s, %s\n", nameToFind, loc)
-  MoveWindowClassToLoc(nameToFind, LocationByInitials(loc))
+func MoveWindowToLoc(hwnd win.HWND, loc WindowLocation) error {
+  success := SetWindowRect(hwnd, location(loc))
+  if !success {
+    return fmt.Errorf("could not move window to %v", loc)
+  }
+  return nil
+}
+
+// -----------------------------------------------------------------------------------------
+
+func MoveActiveWindowToLoc(loc WindowLocation) error {
+  hwnd := win.GetForegroundWindow()
+  return MoveWindowToLoc(hwnd, loc)
 }
 
 // ====================================================================================================================
@@ -135,8 +161,9 @@ func MoveWindowClassTo(nameToFind, loc string) {
 
 // --------------------------------------------------------------------------------------------------------------------
 
-func MoveWindowToLoc(hwnd win.HWND, loc WindowLocation) {
-  SetWindowRect(hwnd, location(loc))
+func MoveWindowClassTo(nameToFind, loc string) {
+  fmt.Printf("MWCT %s, %s\n", nameToFind, loc)
+  MoveWindowClassToLoc(nameToFind, LocationByInitials(loc))
 }
 
 // --------------------------------------------------------------------------------------------------------------------

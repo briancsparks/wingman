@@ -317,6 +317,26 @@ func handler(c chan<- types.KeyboardEvent) types.HOOKPROC {
             _ = MoveActiveWindowDir(ScreenBottom, 20)
           } else if vkcode == types.VK_DOWN {
             _ = MoveActiveWindowDir(ScreenBottom, 1)
+
+          } else if vkcode == types.VK_1 && shiftDown {
+            _ = MoveActiveWindowToLoc(MainM1)
+          } else if vkcode == types.VK_1 {
+            _ = MoveActiveWindowToLoc(MainM1)
+
+          //} else if vkcode == types.VK_2 && shiftDown {
+          //  _ = MoveActiveWindowToLoc(FullishM2)
+          } else if vkcode == types.VK_2 {
+            _ = MoveActiveWindowToLoc(FullishM1)
+
+          //} else if vkcode == types.VK_3 && shiftDown {
+          //  _ = MoveActiveWindowToLoc(FullSharedM2)
+          } else if vkcode == types.VK_3 {
+            _ = MoveActiveWindowToLoc(FullSharedM1)
+
+          //} else if vkcode == types.VK_4 && shiftDown {
+          //  _ = MoveActiveWindowToLoc(LeftMarginishM2)
+          } else if vkcode == types.VK_4 {
+            _ = MoveActiveWindowToLoc(LeftMarginishM1)
           }
 
         }()
