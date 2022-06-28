@@ -34,27 +34,31 @@ func DoTtt4() {
 }
 
 func DoTtt3() {
-  rect := win.RECT{Left: 288, Top: 132, Right: 1828, Bottom: 1019} // Main
-  //rect := win.RECT{Left: 28, Top: 147, Right: 1156, Bottom: 1050} // Left
+  wr := win.RECT{Left: 288, Top: 132, Right: 1828, Bottom: 1019} // Main
+  //wr := win.RECT{Left: 28, Top: 147, Right: 1156, Bottom: 1050} // Left
   //hwnd, _ := wingman.FindWindowByClassName("Notepad")
 
+  rect := wingman.ImageRectangle(wr)
   wingman.ThreeTwoOneGo()
   _ = wingman.MoveActiveWindowTo(rect)
 }
 
 func DoTtt2() {
-  rect := win.RECT{Left: 288, Top: 132, Right: 1828, Bottom: 1019} // Main
-  //rect := win.RECT{Left: 28, Top: 147, Right: 1156, Bottom: 1050} // Left
+  wr := win.RECT{Left: 288, Top: 132, Right: 1828, Bottom: 1019} // Main
+  //wr := win.RECT{Left: 28, Top: 147, Right: 1156, Bottom: 1050} // Left
   //hwnd, _ := wingman.FindWindowByClassName("Notepad")
 
+  rect := wingman.ImageRectangle(wr)
   wingman.ThreeTwoOneGo()
   _ = wingman.MoveActiveWindowTo(rect)
 }
 
 func DoTtt1() {
-  rect := win.RECT{Left: 288, Top: 132, Right: 1828, Bottom: 1019} // Main
-  //rect := win.RECT{Left: 28, Top: 147, Right: 1156, Bottom: 1050} // Left
+  wr := win.RECT{Left: 288, Top: 132, Right: 1828, Bottom: 1019} // Main
+  //wr := win.RECT{Left: 28, Top: 147, Right: 1156, Bottom: 1050} // Left
   hwnd, _ := wingman.FindWindowByClassName("Notepad")
+
+  rect := wingman.ImageRectangle(wr)
   _ = wingman.MoveWindowTo(hwnd, rect)
 }
 

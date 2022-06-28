@@ -110,19 +110,22 @@ func onReady() {
   for {
     select {
     case <-time.After(1 * time.Minute):
+      fmt.Printf("Timeout\n")
       //systray.Quit()
       finishedIt()
       return
 
     case <-signalChan:
+      fmt.Printf("Ctrl+C\n")
       //systray.Quit()
       finishedIt()
       return
 
     //case k := <-keyboardChan:
-    //  //fmt.Printf("Keyb: %-12v vkcode: %-12v sccode: %4v t: %10v\n", k.Message, k.VKCode, k.ScanCode, k.Time)
-    //  fmt.Printf("%-12v %-12v (%v)\n", k.Message, k.VKCode, k.ScanCode)
-    //  continue
+    case <-keyboardChan:
+     //fmt.Printf("Keyb: %-12v vkcode: %-12v sccode: %4v t: %10v\n", k.Message, k.VKCode, k.ScanCode, k.Time)
+     //fmt.Printf("%-12v %-12v (%v)\n", k.Message, k.VKCode, k.ScanCode)
+     continue
 
     //case <-finish:
     //  //systray.Quit()
@@ -130,6 +133,7 @@ func onReady() {
     //  return
 
     case <-quit.ClickedCh:
+      fmt.Printf("Tray Quit\n")
       //systray.Quit()
       finishedIt()
       return
@@ -223,7 +227,7 @@ func handler(c chan<- types.KeyboardEvent) types.HOOKPROC {
       callNext = false
 
       // Dont steal Alt-Tab ever
-      if vkcode == types.VK_LMENU || vkcode == types.VK_TAB {
+      if vkcode == types.VK_RMENU || vkcode == types.VK_TAB {
         callNext = true
 
       } else {
@@ -323,18 +327,18 @@ func handler(c chan<- types.KeyboardEvent) types.HOOKPROC {
           } else if vkcode == types.VK_1 {
             _ = MoveActiveWindowToLoc(MainM1)
 
-          //} else if vkcode == types.VK_2 && shiftDown {
-          //  _ = MoveActiveWindowToLoc(FullishM2)
+          } else if vkcode == types.VK_2 && shiftDown {
+           _ = MoveActiveWindowToLoc(FullishM2)
           } else if vkcode == types.VK_2 {
             _ = MoveActiveWindowToLoc(FullishM1)
 
-          //} else if vkcode == types.VK_3 && shiftDown {
-          //  _ = MoveActiveWindowToLoc(FullSharedM2)
+          } else if vkcode == types.VK_3 && shiftDown {
+           _ = MoveActiveWindowToLoc(FullSharedM2)
           } else if vkcode == types.VK_3 {
             _ = MoveActiveWindowToLoc(FullSharedM1)
 
-          //} else if vkcode == types.VK_4 && shiftDown {
-          //  _ = MoveActiveWindowToLoc(LeftMarginishM2)
+          } else if vkcode == types.VK_4 && shiftDown {
+           _ = MoveActiveWindowToLoc(LeftMarginishM2)
           } else if vkcode == types.VK_4 {
             _ = MoveActiveWindowToLoc(LeftMarginishM1)
           }
