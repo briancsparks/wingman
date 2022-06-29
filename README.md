@@ -10,6 +10,9 @@ Blah, blah, blah.
   * Learn multiple monitors
   * Know what cwd is for the console windows
 * Colorblind helper
+  * Capture Screen
+    * Look for known bad colors, outline or change
+    * Look at color under mouse, outline or change
 
 # Todo
 

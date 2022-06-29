@@ -5,6 +5,7 @@ import (
   "fmt"
   "github.com/getlantern/systray"
   "github.com/hajimehoshi/ebiten/v2"
+  ss "github.com/kbinani/screenshot"
   "github.com/moutend/go-hook/pkg/keyboard"
   "github.com/moutend/go-hook/pkg/types"
   "github.com/moutend/go-hook/pkg/win32"
@@ -75,7 +76,22 @@ func RunKbMove0() error {
 
 // --------------------------------------------------------------------------------------------------------------------
 
+func showStats() {
+  n := ss.NumActiveDisplays()
+  if n <= 0 {
+    log.Panic("No displays?")
+  }
+
+  for i := 0; i < n; i++ {
+    bounds := ss.GetDisplayBounds(i)
+    fmt.Printf("Display #%d : %v\n", i, bounds)
+  }
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
 func onReady() {
+  showStats()
 
   // ----- Finish signal -----
   finish := make(chan struct{}, 1)
