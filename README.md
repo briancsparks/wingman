@@ -20,3 +20,9 @@ Blah, blah, blah.
 * Two
 * Three
 
+
+* Clipboard watcher
+  * Many times, I will put many of the same things onto the clipboard consecutively
+  * Wingman should do the same thing with each in turn. Like copying github repo names
+    onto the clipboard
+* File watcher (downloads, particularly)
